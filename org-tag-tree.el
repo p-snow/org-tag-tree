@@ -56,13 +56,12 @@
 (defun org-tag-tree-load-global-tags ()
   ""
   (interactive)
-  (let ((org-tags-exclude-from-inheritance
-         (append org-tags-exclude-from-inheritance
-                 '("tag"))))
-    (setq org-tag-alist
-          (cl-reduce
-           (lambda (result next)
-             (append result '((:newline)) next))
+  (setq org-tag-alist
+        (cl-reduce
+         (lambda (result next)
+           (append result '((:newline)) next))
+         (let ((org-tags-exclude-from-inheritance
+                '("tag")))
            (org-map-entries #'org-tag-tree--parse-tree
                             "tag"
                             org-tag-tree-global-tag-files)))))
