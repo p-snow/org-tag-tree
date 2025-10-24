@@ -5,7 +5,7 @@
 ;; Version: 0.0.1
 ;; Package-Requires: ((emacs "30.1"))
 ;; Homepage: https://github.com/p-snow/org-tag-tree
-;; Keywords: keywords
+;; Keywords: org, tag
 
 ;; This file is not part of GNU Emacs
 
@@ -29,6 +29,7 @@
 ;;; Code:
 
 (require 'org)
+(require 'cl-lib)
 
 ;;;; Variables
 
@@ -44,6 +45,11 @@
   :type '(repeat :tag "List of files" file)
   :group 'org-tag-tree)
 
+(defcustom org-tag-tree-global-tag-persistent nil
+  "If non-nil, set tags to `org-tag-persistent-alist'."
+  :type 'boolean
+  :group 'org-tag-tree)
+
 ;;;; Functions
 
 ;;;###autoload
@@ -52,45 +58,74 @@
   (interactive)
   (let ((org-tags-exclude-from-inheritance
          (append org-tags-exclude-from-inheritance
-                 '("tag" "grouptag"))))
+                 '("tag"))))
     (setq org-tag-alist
           (append org-tag-alist
-                  (mapcan (lambda (elm)
-                            (assoc-default 'tag elm))
-                          (org-map-entries #'org-tag-tree--tag-entry
-                                           "tag|grouptag"
-                                           org-tag-tree-global-tag-files))))))
+                  (cl-reduce
+                   (lambda (result next)
+                     (append result '((:newline)) next))
+                   (org-map-entries #'org-tag-tree--parse-tree
+                                    "tag"
+                                    org-tag-tree-global-tag-files))))))
 
 ;;;###autoload
 (defun org-tag-tree-load-buffer-tags ()
   "Read tag trees from current buffer."
-  (interactive)
-  )
+  (interactive))
 
-(defun org-tag-tree--tag-entry ()
+(defun org-tag-tree--parse-tree ()
   ""
-  (let ((keywords org-scanner-tags)
-        tag-alist tags)
-    (when (member "tag" keywords)
-      (add-to-list 'tags (list (substring-no-properties
-                                (org-get-heading t t t t))))
-      (setf (alist-get 'tag tag-alist)
-            (reverse tags)))
-    (when (member "grouptag" keywords)
-      (add-to-list 'tags '(:startgrouptag))
-      (add-to-list 'tags (list (substring-no-properties
-                                (org-get-heading t t t t))))
-      (when (org-goto-first-child)
-        (add-to-list 'tags '(:grouptags))
-        (add-to-list 'tags (list (substring-no-properties
-                                  (org-get-heading t t t t))))
-        (while (org-get-next-sibling)
-          (add-to-list 'tags (list (substring-no-properties
-                                    (org-get-heading t t t t))))))
-      (add-to-list 'tags '(:endgrouptag))
-      (setf (alist-get 'tag tag-alist)
-            (reverse tags)))
-    tag-alist))
+  (let ((root-keywords (org-get-tags nil 'local))
+        tag-alist next-gen-group)
+    (if (not (save-excursion (org-goto-first-child)))
+        (push (org-tag-tree--parse-tree-tag)
+              tag-alist)
+      (push (if (member "exclusive" root-keywords)
+                '(:startgroup)
+              '(:startgrouptag))
+            tag-alist)
+      (when-let ((group-tag (org-tag-tree--parse-tree-tag)))
+        (push group-tag tag-alist)
+        (push '(:grouptags) tag-alist))
+      (cl-loop initially (org-goto-first-child)
+               do (push (org-tag-tree--parse-tree-tag (member "regexp" (org-get-tags nil 'local)))
+                        tag-alist)
+               do (when (save-excursion (org-goto-first-child))
+                    (push (point-marker) next-gen-group))
+               while (org-get-next-sibling))
+      (push (if (member "exclusive" root-keywords)
+                '(:endgroup)
+              '(:endgrouptag))
+            tag-alist)
+      (when next-gen-group
+        (mapc (lambda (elm) (push elm tag-alist))
+              (apply #'append
+                     (mapcar (lambda (mkr)
+                               (org-with-point-at mkr
+                                 (org-tag-tree--parse-tree)))
+                             next-gen-group)))))
+    (reverse tag-alist)))
+
+(defun org-tag-tree--parse-tree-tag (&optional regexp)
+  ""
+  (let ((tag-label (substring-no-properties
+                    (org-get-heading t t t t))))
+    (when (length> tag-label 0)
+      (cons (format (if regexp "{%s}" "%s")
+                    (mapconcat (lambda (ch)
+                                 (let ((ch-str (char-to-string ch)))
+                                   ;; Letters, numbers, "@" and "_" are allowed for tag name
+                                   ;; See org#Tags
+                                   (when (or regexp
+                                             (string-match-p "[@_[:digit:][:alpha:]]"
+                                                             ch-str))
+                                     ch-str)))
+                               tag-label))
+            (let ((org-trust-scanner-tags t))
+              (when-let ((key (assoc-default "SELECTION_KEY" (org-entry-properties nil "SELECTION_KEY"))))
+                (when (and (stringp key) (length> key 0))
+                  (aref key 0))))))))
 
 (provide 'org-tag-tree)
-;;; *org-tag-tree.el ends here
+
+;;; org-tag-tree.el ends here
