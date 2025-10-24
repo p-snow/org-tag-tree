@@ -60,13 +60,12 @@
          (append org-tags-exclude-from-inheritance
                  '("tag"))))
     (setq org-tag-alist
-          (append org-tag-alist
-                  (cl-reduce
-                   (lambda (result next)
-                     (append result '((:newline)) next))
-                   (org-map-entries #'org-tag-tree--parse-tree
-                                    "tag"
-                                    org-tag-tree-global-tag-files))))))
+          (cl-reduce
+           (lambda (result next)
+             (append result '((:newline)) next))
+           (org-map-entries #'org-tag-tree--parse-tree
+                            "tag"
+                            org-tag-tree-global-tag-files)))))
 
 ;;;###autoload
 (defun org-tag-tree-load-buffer-tags ()
