@@ -68,8 +68,23 @@
 
 ;;;###autoload
 (defun org-tag-tree-load-buffer-tags ()
-  "Read tag trees from current buffer."
-  (interactive))
+  "Overwrite the default buffer tags by tag-tree defined in the current Org buffer.
+
+Note that original buffer tags defined with #+TAGS: keyword are no longer in effect after calling this function."
+  (interactive)
+  (when (derived-mode-p 'org-mode)
+    (setq org-current-tag-alist
+          (org--tag-add-to-alist
+           org-tag-persistent-alist
+           (cl-reduce
+            (lambda (result next)
+              (append result '((:newline)) next))
+            (let ((org-tags-exclude-from-inheritance
+                   '("tag")))
+              (org-map-entries #'org-tag-tree--parse-tree
+                               "tag"))))))
+  (setq org-tag-groups-alist
+        (org-tag-alist-to-groups org-current-tag-alist)))
 
 (defun org-tag-tree--parse-tree ()
   ""
