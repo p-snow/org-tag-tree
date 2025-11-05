@@ -3,9 +3,9 @@
 ;; Author: p-snow <public@p-snow.org>
 ;; Maintainer: p-snow <public@p-snow.org>
 ;; Version: 0.0.1
-;; Package-Requires: ((emacs "30.1"))
+;; Package-Requires: ((emacs "28.1") (org "9.0"))
 ;; Homepage: https://github.com/p-snow/org-tag-tree
-;; Keywords: org, tag
+;; Keywords: outlines, convenience
 
 ;; This file is not part of GNU Emacs
 
