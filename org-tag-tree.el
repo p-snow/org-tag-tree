@@ -1,4 +1,4 @@
-;;; org-tag-tree.el --- Manage Org tags in Org tree structure -*- lexical-binding: t -*-
+;;; org-tag-tree.el --- Managing Org tag hierarchy with an Org tree -*- lexical-binding: t -*-
 
 ;; Author: p-snow <public@p-snow.org>
 ;; Maintainer: p-snow <public@p-snow.org>
