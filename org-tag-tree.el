@@ -120,17 +120,17 @@ Note that original buffer tags defined with #+TAGS: keyword are no longer in eff
   (let ((root-keywords (org-get-tags nil 'local))
         tag-alist next-gen-group)
     (if (not (save-excursion (org-goto-first-child)))
-        (push (org-tag-tree--parse-tree-tag)
+        (push (org-tag-tree--parse-tree-node)
               tag-alist)
       (push (if (member org-tag-tree-exclusive-tag root-keywords)
                 '(:startgroup)
               '(:startgrouptag))
             tag-alist)
-      (when-let ((group-tag (org-tag-tree--parse-tree-tag)))
+      (when-let ((group-tag (org-tag-tree--parse-tree-node)))
         (push group-tag tag-alist)
         (push '(:grouptags) tag-alist))
       (cl-loop initially (org-goto-first-child)
-               do (push (org-tag-tree--parse-tree-tag
+               do (push (org-tag-tree--parse-tree-node
                          (member org-tag-tree-regexp-tag
                                  (org-get-tags nil 'local)))
                         tag-alist)
@@ -150,11 +150,13 @@ Note that original buffer tags defined with #+TAGS: keyword are no longer in eff
                              next-gen-group)))))
     (reverse tag-alist)))
 
-(defun org-tag-tree--parse-tree-tag (&optional regexp)
+(defun org-tag-tree--parse-tree-node (&optional regexp)
   ""
-  (let ((tag-label (substring-no-properties
-                    (org-get-heading t t t t))))
-    (when (length> tag-label 0)
+  (let ((node-tags (org-get-tags nil 'local))
+        (node-label (substring-no-properties
+                     (org-get-heading t t t t))))
+    (when (and (not (member org-tag-tree-ignore-tag node-tags))
+               (length> node-label 0))
       (cons (format (if regexp "{%s}" "%s")
                     (mapconcat (lambda (ch)
                                  (let ((ch-str (char-to-string ch)))
@@ -164,7 +166,7 @@ Note that original buffer tags defined with #+TAGS: keyword are no longer in eff
                                              (string-match-p "[@_[:digit:][:alpha:]]"
                                                              ch-str))
                                      ch-str)))
-                               tag-label))
+                               node-label))
             (let ((org-trust-scanner-tags t))
               (when-let ((key (assoc-default "SELECTION_KEY" (org-entry-properties nil "SELECTION_KEY"))))
                 (when (and (stringp key) (length> key 0))
