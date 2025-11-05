@@ -85,6 +85,9 @@ See the \"Match syntax\" section of the org manual for more details."
 (defun org-tag-tree-load-global-tags ()
   "Load global tags by reading tag trees in `org-tag-tree-global-tag-files'.
 
+Tag trees are represented by the root node, which has a tag that matches
+`org-tag-tree-global-tag-matcher`.
+
 Global tags are tag definitions available across all Org files. By
 default, they are stored in `org-tag-alist', which means they can be
 overridden by buffer-local tags declared in the #+TAGS line. If
@@ -108,9 +111,13 @@ tags are declared."
 
 ;;;###autoload
 (defun org-tag-tree-load-buffer-tags ()
-  "Overwrite the default buffer tags by tag-tree defined in the current Org buffer.
+  "Load buffer-local tags from tag trees found in the current Org buffer.
 
-Note that original buffer tags defined with #+TAGS: keyword are no longer in effect after calling this function."
+Tag trees are represented by the root node, which has a tag that matches
+`org-tag-tree-buffer-tag-matcher`.
+
+The loaded tags replace any buffer-local tags previously declared in a
+#+TAGS line."
   (interactive)
   (when (derived-mode-p 'org-mode)
     (setq org-current-tag-alist
@@ -127,7 +134,7 @@ Note that original buffer tags defined with #+TAGS: keyword are no longer in eff
         (org-tag-alist-to-groups org-current-tag-alist)))
 
 (defun org-tag-tree--parse-tree ()
-  ""
+  "Parse the tag tree rooted at the current Org heading."
   (let ((root-keywords (org-get-tags nil 'local))
         tag-alist next-gen-group)
     (if (not (save-excursion (org-goto-first-child)))
@@ -162,7 +169,7 @@ Note that original buffer tags defined with #+TAGS: keyword are no longer in eff
     (reverse tag-alist)))
 
 (defun org-tag-tree--parse-tree-node (&optional regexp)
-  ""
+  "Interpret the current Org entry as a node (a string or REGEXP) in the tag tree."
   (let ((node-tags (org-get-tags nil 'local))
         (node-label (substring-no-properties
                      (org-get-heading t t t t))))
