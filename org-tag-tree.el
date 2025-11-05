@@ -41,8 +41,37 @@
   :link '(url-link "https://github.com/p-snow/org-tag-tree"))
 
 (defcustom org-tag-tree-global-tag-files nil
-  "A list of files that contains tag tree for all org files."
+  "A list of Org files in which the global tag trees would be looked for."
   :type '(repeat :tag "List of files" file)
+  :group 'org-tag-tree)
+
+(defcustom org-tag-tree-global-tag-matcher "gtag"
+  "The tag matcher used to find tag trees globally.
+
+See the \"Match syntax\" section of the org manual for more details."
+  :type 'string
+  :group 'org-tag-tree)
+
+(defcustom org-tag-tree-buffer-tag-matcher "tag"
+  "The tag matcher used to find tag trees locally.
+
+See the \"Match syntax\" section of the org manual for more details."
+  :type 'string
+  :group 'org-tag-tree)
+
+(defcustom org-tag-tree-exclusive-tag "exclusive"
+  "The tag for mutually exclusive groups in the tag trees."
+  :type 'string
+  :group 'org-tag-tree)
+
+(defcustom org-tag-tree-regexp-tag "regexp"
+  "The tag for regular expression headings in the tag trees."
+  :type 'string
+  :group 'org-tag-tree)
+
+(defcustom org-tag-tree-ignore-tag "ignore"
+  "The tag for subtrees to ignore in the tag trees."
+  :type 'string
   :group 'org-tag-tree)
 
 (defcustom org-tag-tree-global-tag-persistent nil
@@ -61,9 +90,9 @@
          (lambda (result next)
            (append result '((:newline)) next))
          (let ((org-tags-exclude-from-inheritance
-                '("tag")))
+                (list org-tag-tree-global-tag-matcher)))
            (org-map-entries #'org-tag-tree--parse-tree
-                            "tag"
+                            org-tag-tree-global-tag-matcher
                             org-tag-tree-global-tag-files)))))
 
 ;;;###autoload
@@ -80,9 +109,9 @@ Note that original buffer tags defined with #+TAGS: keyword are no longer in eff
             (lambda (result next)
               (append result '((:newline)) next))
             (let ((org-tags-exclude-from-inheritance
-                   '("tag")))
+                   (list org-tag-tree-buffer-tag-matcher)))
               (org-map-entries #'org-tag-tree--parse-tree
-                               "tag"))))))
+                               org-tag-tree-buffer-tag-matcher))))))
   (setq org-tag-groups-alist
         (org-tag-alist-to-groups org-current-tag-alist)))
 
@@ -93,7 +122,7 @@ Note that original buffer tags defined with #+TAGS: keyword are no longer in eff
     (if (not (save-excursion (org-goto-first-child)))
         (push (org-tag-tree--parse-tree-tag)
               tag-alist)
-      (push (if (member "exclusive" root-keywords)
+      (push (if (member org-tag-tree-exclusive-tag root-keywords)
                 '(:startgroup)
               '(:startgrouptag))
             tag-alist)
@@ -101,12 +130,14 @@ Note that original buffer tags defined with #+TAGS: keyword are no longer in eff
         (push group-tag tag-alist)
         (push '(:grouptags) tag-alist))
       (cl-loop initially (org-goto-first-child)
-               do (push (org-tag-tree--parse-tree-tag (member "regexp" (org-get-tags nil 'local)))
+               do (push (org-tag-tree--parse-tree-tag
+                         (member org-tag-tree-regexp-tag
+                                 (org-get-tags nil 'local)))
                         tag-alist)
                do (when (save-excursion (org-goto-first-child))
                     (push (point-marker) next-gen-group))
                while (org-get-next-sibling))
-      (push (if (member "exclusive" root-keywords)
+      (push (if (member org-tag-tree-exclusive-tag root-keywords)
                 '(:endgroup)
               '(:endgrouptag))
             tag-alist)
