@@ -83,17 +83,28 @@ See the \"Match syntax\" section of the org manual for more details."
 
 ;;;###autoload
 (defun org-tag-tree-load-global-tags ()
-  ""
+  "Load global tags by reading tag trees in `org-tag-tree-global-tag-files'.
+
+Global tags are tag definitions available across all Org files. By
+default, they are stored in `org-tag-alist', which means they can be
+overridden by buffer-local tags declared in the #+TAGS line. If
+`org-tag-tree-global-tag-persistent' is non-nil, they are stored in
+`org-tag-persistent-alist', making them available even when buffer-local
+tags are declared."
   (interactive)
-  (setq org-tag-alist
-        (cl-reduce
-         (lambda (result next)
-           (append result '((:newline)) next))
-         (let ((org-tags-exclude-from-inheritance
-                (list org-tag-tree-global-tag-matcher)))
-           (org-map-entries #'org-tag-tree--parse-tree
-                            org-tag-tree-global-tag-matcher
-                            org-tag-tree-global-tag-files)))))
+  (when-let ((global-tag-alist
+              (cl-reduce
+               (lambda (result next)
+                 (append result '((:newline)) next))
+               (let ((org-tags-exclude-from-inheritance
+                      (list org-tag-tree-global-tag-matcher)))
+                 (org-map-entries #'org-tag-tree--parse-tree
+                                  org-tag-tree-global-tag-matcher
+                                  org-tag-tree-global-tag-files)))))
+    (setf (if org-tag-tree-global-tag-persistent
+              org-tag-persistent-alist
+            org-tag-alist)
+          global-tag-alist)))
 
 ;;;###autoload
 (defun org-tag-tree-load-buffer-tags ()
