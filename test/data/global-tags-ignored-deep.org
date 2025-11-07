@@ -1,0 +1,5 @@
+* Root :gtag:
+** Keep
+** Skip :ignore:
+*** Hidden
+**** VeryHidden

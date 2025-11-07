@@ -1,0 +1,4 @@
+* Root :gtag:
+** Group :exclusive:
+*** Choice1
+*** Choice2

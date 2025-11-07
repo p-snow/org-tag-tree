@@ -1,0 +1,10 @@
+* Exclusive :gtag:exclusive:
+** Alpha
+** Beta
+* Standard :gtag:
+** ^Foo.*$ :regexp:
+** Ignored :ignore:
+** Select
+   :PROPERTIES:
+   :SELECTION_KEY: S
+   :END:

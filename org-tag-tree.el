@@ -174,14 +174,15 @@ The loaded tags replace any buffer-local tags previously declared in a
       (when-let ((group-tag (org-tag-tree--parse-tree-node)))
         (push group-tag tag-alist)
         (push '(:grouptags) tag-alist))
-      (cl-loop initially (org-goto-first-child)
-               do (push (org-tag-tree--parse-tree-node
-                         (member org-tag-tree-regexp-tag
-                                 (org-get-tags nil 'local)))
-                        tag-alist)
-               do (when (save-excursion (org-goto-first-child))
-                    (push (point-marker) next-gen-group))
-               while (org-get-next-sibling))
+      (when (org-goto-first-child)
+        (cl-loop do
+                 (when-let ((node (org-tag-tree--parse-tree-node
+                                   (member org-tag-tree-regexp-tag
+                                           (org-get-tags nil 'local)))))
+                   (push node tag-alist)
+                   (when (save-excursion (org-goto-first-child))
+                     (push (point-marker) next-gen-group)))
+                 while (org-get-next-sibling)))
       (push (if (member org-tag-tree-exclusive-tag root-keywords)
                 '(:endgroup)
               '(:endgrouptag))
