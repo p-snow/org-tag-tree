@@ -24,21 +24,22 @@
 
 ;;; Commentary:
 
-;; By default, Org tag hierarchies are declared with the #+TAGS: syntax:
+;; org-tag-tree lets you describe Org tag hierarchies as ordinary Org trees.
 
-;; #+TAGS: [GTD : Control Persp]
-;; #+TAGS: [Control : Context Task]
-;; #+TAGS: [Persp : Vision Goal]
+;; By default, Org tag hierarchies are defined with the #+TAGS: syntax:
 
-;; Or define globally:
+;; #+TAGS: [ GTD : Control Persp ]
+;; #+TAGS: [ Control : Context Task ]
+;; #+TAGS: [ Persp : Vision Goal ]
+
+;; Or defined globally:
 
 ;; (setq org-tag-alist
 ;;       '((:startgrouptag)("GTD")(:grouptags)("Control")("Persp")(:endgrouptag)
 ;;         (:startgrouptag)("Control")(:grouptags)("Context")("Task")(:endgrouptag)
 ;;         (:startgrouptag)("Persp")(:grouptags)("Vision")("Goal")(:endgrouptag)))
 
-;; org-tag-tree lets you express the same hierarchy directly in an Org outline
-;; and attach any explanatory notes to nodes:
+;; org-tag-tree lets you express the same hierarchy directly in an Org outline:
 
 ;; * GTD                    :tag:
 ;; ** Control
