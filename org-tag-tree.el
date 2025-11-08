@@ -147,18 +147,19 @@ The loaded tags replace any buffer-local tags previously declared in a
 #+TAGS line."
   (interactive)
   (when (derived-mode-p 'org-mode)
-    (setq org-current-tag-alist
-          (org--tag-add-to-alist
-           org-tag-persistent-alist
-           (cl-reduce
-            (lambda (result next)
-              (append result '((:newline)) next))
-            (let ((org-tags-exclude-from-inheritance
-                   (list org-tag-tree-buffer-tag-matcher)))
-              (org-map-entries #'org-tag-tree--parse-tree
-                               org-tag-tree-buffer-tag-matcher))))))
-  (setq org-tag-groups-alist
-        (org-tag-alist-to-groups org-current-tag-alist)))
+    (when-let* ((buffer-parsed-tree (let ((org-tags-exclude-from-inheritance
+                                           (list org-tag-tree-buffer-tag-matcher)))
+                                      (org-map-entries #'org-tag-tree--parse-tree
+                                                       org-tag-tree-buffer-tag-matcher)))
+                (buffer-tag-alist (cl-reduce
+                                   (lambda (result next)
+                                     (append result '((:newline)) next))
+                                   buffer-parsed-tree)))
+      (setq org-current-tag-alist (org--tag-add-to-alist
+                                   org-tag-persistent-alist
+                                   buffer-tag-alist))
+      (setq org-tag-groups-alist
+            (org-tag-alist-to-groups org-current-tag-alist)))))
 
 (defun org-tag-tree--parse-tree ()
   "Parse the tag tree rooted at the current Org heading."
