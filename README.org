@@ -1,0 +1,173 @@
+* org-tag-tree
+:PROPERTIES:
+:CUSTOM_ID: org-tag-tree
+:END:
+
+=org-tag-tree= lets you describe Org tag hierarchies as ordinary Org trees.
+
+By default, Org tag hierarchies are defined with the #+TAGS: syntax:
+
+#+begin_src org
+#+TAGS: [ GTD : Control Persp ]
+#+TAGS: [ Control : Context Task ]
+#+TAGS: [ Persp : Vision Goal ]
+#+end_src
+
+Or defined globally:
+
+#+begin_src emacs-lisp
+(setq org-tag-alist
+      '((:startgrouptag)("GTD")(:grouptags)("Control")("Persp")(:endgrouptag)
+        (:startgrouptag)("Control")(:grouptags)("Context")("Task")(:endgrouptag)
+        (:startgrouptag)("Persp")(:grouptags)("Vision")("Goal")(:endgrouptag)))
+#+end_src
+
+org-tag-tree lets you express the same hierarchy directly in an Org outline:
+
+#+begin_src org
+,* GTD                    :tag:
+,** Control
+,** Context
+    Used for each context (e.g. @home, @work)
+,** Task
+    Use for task-level tags
+,** Persp
+,** Vision
+    Long-term, big-picture items
+,** Goal
+    Concrete outcomes to measure progress
+#+end_src
+
+This keeps the tag inheritance visible in the document structure and lets you include descriptions, examples, or usage notes for each tag node.
+
+** Features
+:PROPERTIES:
+:CUSTOM_ID: features
+:END:
+
+Support two tag scopes:
+- Global tags: available across all Org files.
+- Buffer-local tags: limited to the current Org buffer.
+
+Tag-tree definition:
+- The parent–child relationship represents a tag group
+- Both normal tag groups and exclusive tag groups are supported
+- A child node is a group member and can be either a tag name or a regular expression
+- Multi-level Org headings create multi-generation tag groups (a nested group hierarchy)
+- Each node may have a SELECTION_KEY property, which is a shortcut key for fast tag-selection mode
+- Assistive information can be placed in the tag tree to be ignored
+
+** Installation
+:PROPERTIES:
+:CUSTOM_ID: installation
+:END:
+
+1. Place =org-tag-tree.el= somewhere on your =load-path=.
+
+2. Add the following to your Emacs configuration:
+
+   #+begin_example
+   (require 'org-tag-tree)
+   #+end_example
+
+** Usage
+:PROPERTIES:
+:CUSTOM_ID: usage
+:END:
+*** Defining tag trees in Org files
+:PROPERTIES:
+:CUSTOM_ID: global-tag-trees
+:END:
+
+#+begin_src org
+,* Food                                               :gtag:
+,** Fruit
+,*** Apple
+:PROPERTIES:
+:SELECTION_KEY: a
+:END:
+,*** Banana
+,*** ^.+berry$                                    :regexp:
+,*** Watermelon                                   :ignore:
+,** Vegetable                                   :exclusive:
+,*** Tomato
+,*** Pumpkin
+#+end_src
+
+#+vindex: org-tag-tree-buffer-tag-matcher
+#+vindex: org-tag-tree-global-tag-matcher
+The root of a tag tree must be tagged with ~org-tag-tree-buffer-tag-matcher~ (default: "tag") or ~org-tag-tree-global-tag-matcher~ (default: "gtag"). Thus, the "Food" is the root of a two-level tag tree.
+
+#+vindex: org-tag-tree-exclusive-tag
+A parent at any level is a group tag. It has member tags as children. If the parent node has ~org-tag-tree-exclusive-tag~ (default: "exclusive"), its members are mutually exclusive during tag selection.
+
+#+vindex: org-tag-tree-regexp-tag
+The heading for each node is a tag name. If the node has ~org-tag-tree-regexp-tag~ (default: "regexp"), the heading is treated as a regular expression matcher. Namely, "Blueberry" and "Raspberry" will be members of "Fruit".
+
+#+vindex: org-tag-tree-ignore-tag
+The node tagged with ~org-tag-tree-ignore-tag~ (default: "ignore") must be ignored. Thus, "Watermelon" is not defined as a tag, not to mention that it is a member of "Fruit."
+
+A character for SELECTION_KEY property is used as a shortcut key. Thus, "Apple" will be selected when you press "a" in fast tag selection mode.
+
+Therefore, the above tag tree equals the following #+TAGS lines locally.
+
+#+begin_src org
+,#+TAGS: [ Food : Fruit Vegetable ]
+,#+TAGS: [ Fruit : Apple Banana {^.+berry$} ]
+,#+TAGS: { Vegetable : Tomato Pumpkin }
+#+end_src
+
+Or the following globally.
+
+#+begin_src emacs-lisp
+(setq org-tag-alist
+      '((:startgrouptag)("Food")(:grouptags)("Fruit")("Vegetable")(:endgrouptag)
+        (:startgrouptag)("Fruit")(:grouptags)("Apple")("Banana")("{^.+berry$}")(:endgrouptag)
+        (:startgroup)("Vegetable")(:grouptags)("Tomato")("Pumpkin")(:endgroup)))
+#+end_src
+
+*** Loading buffer-local tag trees
+:PROPERTIES:
+:CUSTOM_ID: buffer-local-tag-trees
+:END:
+
+#+begin_src emacs-lisp
+(add-hook 'org-mode-hook
+          'org-tag-tree-load-buffer-tags)
+#+end_src
+
+#+findex: org-tag-tree-load-buffer-tags
+~org-tag-tree-load-buffer-tags~ searches tag trees in the current Org buffer and parse them into tag definitions to apply locally. We recommend it to be hook function for ~org-mode-hook~.
+
+*** Loading global tag trees
+:PROPERTIES:
+:CREATED:  [2025-11-09 Sun 14:38]
+:END:
+
+#+begin_src emacs-lisp
+(setq org-tag-tree-global-tag-files '("~/org/tags.org"))
+(org-tag-tree-load-global-tags)
+#+end_src
+
+#+findex: org-tag-tree-load-global-tags
+#+vindex: org-tag-tree-global-tag-files
+#+vindex: org-tag-tree-global-tag-persistent
+~org-tag-tree-load-global-tags~ searches tag trees in ~org-tag-tree-global-tag-files~ and parses them into tag definitions to apply globally (to all Org files). The tags are overridden when any local tags are defined. If you want to use global tags even if local tags are defined, set ~org-tag-tree-global-tag-persistent~ to non-nil.
+
+** Development
+:PROPERTIES:
+:CUSTOM_ID: development
+:END:
+
+- The test suite uses ERT. Run it with:
+
+  #+begin_src sh
+  make test
+  #+end_src
+
+** License
+:PROPERTIES:
+:CUSTOM_ID: license
+:END:
+
+GPLv3
