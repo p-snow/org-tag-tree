@@ -1,8 +1,8 @@
-;;; org-tag-tree.el --- Managing Org tag hierarchy with an Org tree -*- lexical-binding: t -*-
+;;; org-tag-tree.el --- Define Org-mode tag hierarchies from Org subtrees -*- lexical-binding: t -*-
 
 ;; Author: p-snow <public@p-snow.org>
 ;; Maintainer: p-snow <public@p-snow.org>
-;; Version: 0.0.1
+;; Version: 0.1
 ;; Package-Requires: ((emacs "28.1") (org "9.0"))
 ;; Homepage: https://github.com/p-snow/org-tag-tree
 ;; Keywords: outlines, convenience
