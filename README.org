@@ -133,7 +133,7 @@ Or the following globally.
 
 #+begin_src emacs-lisp
 (add-hook 'org-mode-hook
-          'org-tag-tree-load-buffer-tags)
+          #'org-tag-tree-load-buffer-tags)
 #+end_src
 
 #+findex: org-tag-tree-load-buffer-tags
