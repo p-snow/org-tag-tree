@@ -27,14 +27,14 @@ org-tag-tree lets you express the same hierarchy directly in an Org outline:
 #+begin_src org
 ,* GTD                    :tag:
 ,** Control
-,** Context
+,*** Context
     Used for each context (e.g. @home, @work)
-,** Task
+,*** Task
     Use for task-level tags
 ,** Persp
-,** Vision
+,*** Vision
     Long-term, big-picture items
-,** Goal
+,*** Goal
     Concrete outcomes to measure progress
 #+end_src
 
