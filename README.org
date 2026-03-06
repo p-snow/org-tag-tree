@@ -154,6 +154,15 @@ Or the following globally.
 #+vindex: org-tag-tree-global-tag-persistent
 ~org-tag-tree-load-global-tags~ searches tag trees in ~org-tag-tree-global-tag-files~ and parses them into tag definitions to apply globally (to all Org files). The tags are overridden when any local tags are defined. If you want to use global tags even if local tags are defined, set ~org-tag-tree-global-tag-persistent~ to non-nil.
 
+** Ideas
+:PROPERTIES:
+:CREATED:  [2026-03-06 Fri 13:14]
+:END:
+
+Let's suppose automatic tagging with AI for notes in Org mode. Even if AI does not work in a completely deterministic way for tagging, it is very important to provide it with ample information for each tag, so it can tag consistently.
+
+=org-tag-tree= assists users in adding descriptions for each tag in an Org file. Users can submit the Org file as additional context to the AI for more deterministic tagging.
+
 ** Development
 :PROPERTIES:
 :CUSTOM_ID: development
